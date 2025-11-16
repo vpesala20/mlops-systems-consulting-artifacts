@@ -1,0 +1,82 @@
+k8s_deployment.yaml
+
+This file defines the Kubernetes Deployment (for running the app)
+
+and the Kubernetes Service (for exposing the app).
+
+1. Kubernetes Deployment
+
+This object manages the state of the application, ensuring a desired number of replicas are running.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: ml-inference-service
+labels:
+app: ml-inference-app
+spec:
+
+Maintain 3 replicas for high availability and load balancing
+
+replicas: 3
+selector:
+matchLabels:
+app: ml-inference-app
+template:
+metadata:
+labels:
+app: ml-inference-app
+spec:
+containers:
+- name: fastapi-server
+# Replace 'YOUR_AWS_ACCOUNT_ID' and 'YOUR_REGION' with your actual ECR details
+# and 'latest' with the image tag you push.
+# Example: https://www.google.com/search?q=123456789012.dkr.ecr.us-west-2.amazonaws.com/ml-inference-service:latest
+image: REPLACE_WITH_YOUR_ECR_IMAGE_URL
+ports:
+- containerPort: 8000
+# Define resource limits and requests for efficient scheduling and stability
+resources:
+requests:
+memory: "64Mi"
+cpu: "250m"
+limits:
+memory: "256Mi"
+cpu: "500m"
+# Readiness probe: Checks if the service is ready to accept traffic
+readinessProbe:
+httpGet:
+path: /health
+port: 8000
+initialDelaySeconds: 5
+periodSeconds: 5
+timeoutSeconds: 3
+# Liveness probe: Checks if the application is healthy
+livenessProbe:
+httpGet:
+path: /health
+port: 8000
+initialDelaySeconds: 15
+periodSeconds: 15
+timeoutSeconds: 5
+
+2. Kubernetes Service
+
+This object exposes the Deployment externally and load balances traffic to the replicas.
+
+apiVersion: v1
+kind: Service
+metadata:
+name: ml-inference-loadbalancer
+spec:
+
+Use LoadBalancer type to expose the service outside the EKS cluster (via AWS ELB)
+
+type: LoadBalancer
+selector:
+app: ml-inference-app
+ports:
+
+protocol: TCP
+port: 80       # The port the service will listen on (standard HTTP)
+targetPort: 8000 # The port the container is running on (as defined in Dockerfile/app)
