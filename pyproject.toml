@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "eks-ml-inference"
+version = "0.1.0"
+description = "FastAPI ML Inference Service packaged for EKS deployment."
+authors = ["Your Name you@example.com"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.111.0"
+uvicorn = {extras = ["standard"], version = "^0.30.1"}
+scikit-learn = "^1.5.0" # Required for model inference
+joblib = "^1.4.2"      # Required for loading the model file (.pkl)
+numpy = "^1.26.4"      # Required for data manipulation
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
